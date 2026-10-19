@@ -138,13 +138,6 @@ python -m pytest tests -q                  # 50 tests
 
 **Extra time and penalties.** A knockout tie level after 90 minutes gets 30 minutes of extra time with each side scoring Poisson(rate × 0.8 / 3). If still level, a symmetric logistic shoot-out model decides it, using the Elo gap and each team's shrunk prior shoot-out win rate, fitted on the ~700 shoot-outs in `shootouts.csv`. It is only slightly better than a coin flip on a 2015+ holdout (log loss 0.685 vs 0.693), which matches the literature's view that shoot-outs are close to random.
 
-**Assumptions to check.**
-- Tiebreakers are the 2023 regulations; the 2027 wiki page did not list them.
-- The group matchday order was not on the wiki page. The FIFA four-team template is assumed; it only affects the rare last-round shoot-out tiebreak.
-- Saudi Arabia plays every match as the genuine home side; all other matches are neutral and symmetrised.
-- Ratings are frozen at the last result in the data (6 Oct 2026) and are not updated during the tournament.
-- The extra-time intensity of 0.8 is a rough estimate (goalscorer data are too sparse); varying it from 0.4 to 1.2 moves title probabilities by at most about 1.4 percentage points.
-- The model sends about 14% of knockout ties to penalties, against 16 of roughly 62 knockout games (26%) in Asian Cups since 2004. The historical sample is small, but it hints that knockout draws may be slightly under-modelled.
 
 ## Next steps
 
