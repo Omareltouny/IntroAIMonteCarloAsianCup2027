@@ -1,7 +1,7 @@
 # Machine Learning-Driven Probabilistic Forecasting and Monte Carlo Simulation of the 2027 AFC Asian Cup
 
 > CSCI-630.01 · Omar Elouny
-> **Status: in progress.** Model testing is complete. The Monte Carlo tournament simulation is next.
+> **Status: in progress.** Model testing is complete. The tournament engine (24-team format, score layer, extra time and penalties) is implemented and tested; the final 10,000-run report is next.
 
 ## Overview
 
@@ -25,7 +25,8 @@ results.csv ──► Elo ratings (1872–2026) ──► Match features ──�
 | 3 | Feature engineering (Elo difference, rolling form, rest days, host advantage) | Done |
 | 4 | Model training and evaluation (Poisson GLM, Logistic Regression, XGBoost, MLP) | Done |
 | 5 | Select the best-calibrated model as the match simulation engine | Done (XGBoost) |
-| 6 | Monte Carlo simulation of the 2027 AFC Asian Cup (groups, tiebreakers, 3rd-place pool, knockout bracket) | Next |
+| 6 | Tournament engine: groups, tiebreakers, 3rd-place pool, knockout bracket, score layer, ET and penalties | Done (`afc_sim/`) |
+| 6b | Final 10,000-run simulation and reporting | Next |
 | 7 | Final report and visualisations | Planned |
 
 ## Dataset
@@ -91,6 +92,18 @@ Full tables are in [`model_results.csv`](model_results.csv), and calibration plo
 ├── README.md
 ├── afc_asian_cup_model_testing.ipynb   # Elo, features, models, evaluation
 ├── model_results.csv                   # Validation and test metrics
+├── run_simulation.py                   # End-to-end: data -> model -> N tournament runs
+├── simulation_results.csv              # Preliminary 10,000-run output (see below)
+├── afc_sim/
+│   ├── config.py      # groups, R16/QF/SF bracket, 15-row third-place table
+│   ├── data.py        # Elo + feature pipeline ported from the notebook
+│   ├── engine.py      # XGBoost W/D/L tables for all 24 teams (host advantage, neutral symmetrisation)
+│   ├── scores.py      # Poisson score layer
+│   ├── groupstage.py  # standings, tiebreak cascade, third-place ranking
+│   ├── shootouts.py   # penalty shoot-out model fitted on shootouts.csv
+│   ├── knockout.py    # bracket construction, extra time, penalties
+│   └── simulate.py    # Monte Carlo driver
+├── tests/             # 50 unit and end-to-end tests (pytest)
 └── data/
     ├── results.csv
     ├── former_names.csv
@@ -103,20 +116,43 @@ Full tables are in [`model_results.csv`](model_results.csv), and calibration plo
 ```bash
 git clone https://github.com/Omareltouny/IntroAIMonteCarloAsianCup2027.git
 cd IntroAIMonteCarloAsianCup2027
-pip install pandas numpy scipy scikit-learn xgboost matplotlib jupyter
+pip install pandas numpy scipy scikit-learn xgboost matplotlib jupyter pytest
 # download the Kaggle dataset into ./data/
 jupyter notebook afc_asian_cup_model_testing.ipynb
 ```
 
 The full notebook runs in about 1–2 minutes on a laptop CPU.
 
+```bash
+python run_simulation.py --sims 10000      # about 20 s
+python -m pytest tests -q                  # 50 tests
+```
+
+## Tournament engine (`afc_sim/`)
+
+**Format.** Six groups of four (A–F, drawn 9 May 2026). The top two plus the four best third-placed teams reach the Round of 16. Group winners meet third-placed teams according to the official 15-row table keyed on which four groups' thirds qualify (`THIRD_PLACE_TABLE`; each row is checked against the bracket's slot restrictions in the tests). Bracket: R16 matches 37–44, QF 45–48 (W37–W39, W38–W41, W44–W43, W40–W42), SF 49–50 (W45–W46, W47–W48), final 51, no third-place match.
+
+**Tiebreakers** (AFC regulations as published for 2023): head-to-head points, goal difference, goals scored among the tied teams; the same criteria re-applied to any subset still tied; overall goal difference; overall goals scored; a penalty shoot-out if exactly two teams are tied and met in the last round; then disciplinary points and lots. Disciplinary points cannot be simulated, so ties that survive to that point go to lots. Third-placed teams are ranked on points, goal difference, goals scored, then lots.
+
+**Score layer.** For each ordered pairing, independent-Poisson rates are fitted so the implied win/draw/loss probabilities match XGBoost (fit error below 1e-6). The joint score distribution is then reweighted by outcome class so the W/D/L marginals equal XGBoost's exactly, so the classifier decides who wins and the Poisson shape decides the margin. Sampled scores feed goal-difference and goals-scored tiebreakers.
+
+**Extra time and penalties.** A knockout tie level after 90 minutes gets 30 minutes of extra time with each side scoring Poisson(rate × 0.8 / 3). If still level, a symmetric logistic shoot-out model decides it, using the Elo gap and each team's shrunk prior shoot-out win rate, fitted on the ~700 shoot-outs in `shootouts.csv`. It is only slightly better than a coin flip on a 2015+ holdout (log loss 0.685 vs 0.693), which matches the literature's view that shoot-outs are close to random.
+
+**Assumptions to check.**
+- Tiebreakers are the 2023 regulations; the 2027 wiki page did not list them.
+- The group matchday order was not on the wiki page. The FIFA four-team template is assumed; it only affects the rare last-round shoot-out tiebreak.
+- Saudi Arabia plays every match as the genuine home side; all other matches are neutral and symmetrised.
+- Ratings are frozen at the last result in the data (6 Oct 2026) and are not updated during the tournament.
+- The extra-time intensity of 0.8 is a rough estimate (goalscorer data are too sparse); varying it from 0.4 to 1.2 moves title probabilities by at most about 1.4 percentage points.
+- The model sends about 14% of knockout ties to penalties, against 16 of roughly 62 knockout games (26%) in Asian Cups since 2004. The historical sample is small, but it hints that knockout draws may be slightly under-modelled.
+
 ## Next steps
 
-- [ ] Encode the 24-team AFC Asian Cup format: six groups of four, the best four third-placed teams advance, and the official tiebreakers.
-- [ ] Add a score-generation layer (Poisson goal model) so goal difference tiebreakers can be simulated.
-- [ ] Handle knockout draws with extra time and penalties, using the shootout history.
+- [x] Encode the 24-team AFC Asian Cup format: six groups of four, the best four third-placed teams advance, and the official tiebreakers.
+- [x] Add a score-generation layer (Poisson goal model) so goal difference tiebreakers can be simulated.
+- [x] Handle knockout draws with extra time and penalties, using the shootout history.
 - [ ] Run 10,000 tournament simulations and report group survival, stage progression and championship probabilities.
-- [ ] Retrain the selected model on all data through 2026 before the final simulation.
+- [x] Retrain the selected model on all data through 2026 before the final simulation (`train_xgb(df, 2026)`, same tuned hyper-parameters, 487 trees).
 
 ## Author
 
