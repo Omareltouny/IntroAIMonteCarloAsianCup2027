@@ -3,4 +3,6 @@ numpy
 scipy
 scikit-learn
 xgboost
+matplotlib
 pytest
+jupyter

@@ -1,0 +1,59 @@
+{
+ "replay_2023": {
+  "winners": {
+   "A": "Qatar",
+   "B": "Australia",
+   "C": "Iran",
+   "D": "Iraq",
+   "E": "Bahrain",
+   "F": "Saudi Arabia"
+  },
+  "runners_up": {
+   "A": "Tajikistan",
+   "B": "Uzbekistan",
+   "C": "United Arab Emirates",
+   "D": "Japan",
+   "E": "South Korea",
+   "F": "Thailand"
+  },
+  "best_thirds": {
+   "E": "Jordan",
+   "C": "Palestine",
+   "B": "Syria",
+   "D": "Indonesia"
+  },
+  "matched_r16_ties": 8,
+  "of": 8
+ },
+ "backtest_2023": {
+  "champion": "Qatar",
+  "champion_title_prob": 0.0513,
+  "champion_rank": 5,
+  "uniform_title_prob": 0.041666666666666664,
+  "finalists": [
+   "Jordan",
+   "Qatar"
+  ],
+  "r16_teams_in_model_top16": 14,
+  "expected_r16_hits_under_model": 12.4395,
+  "brier_stage": 0.5302228875,
+  "brier_stage_baseline": 0.6996527777777778,
+  "brier_skill": 0.24216282084367247,
+  "spearman_expected_vs_actual": 0.694077398575322,
+  "group_match_logloss": 0.8104172685522241,
+  "group_match_logloss_prior": 1.0643372598527427,
+  "group_match_accuracy": 0.6388888888888888,
+  "n_group_matches": 36,
+  "n_sims": 10000
+ },
+ "defending_champions": {
+  "n_matches": 307,
+  "n_editions": 64,
+  "mean_residual": -0.03162879465391143,
+  "ci95": [
+   -0.0809040121781068,
+   0.014793908306847393
+  ],
+  "pts_per_game_gain": -0.03162879465391143
+ }
+}

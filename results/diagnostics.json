@@ -1,0 +1,46 @@
+{
+ "n_sims": 10000,
+ "seed": 2027,
+ "runtime_s": 25.4,
+ "diagnostics": {
+  "n_sims": 10000,
+  "tiebreak_resolution": {
+   "head_to_head": 11969,
+   "overall_gd_gf": 16244,
+   "lots": 889,
+   "shootout": 424
+  },
+  "tiebreak_per_sim": 2.9526,
+  "knockout_decided_in": {
+   "90": 0.7563333333333333,
+   "PEN": 0.14432666666666666,
+   "ET": 0.09934
+  },
+  "mean_fit_error": 1.97877283065245e-08,
+  "max_fit_error": 1.4127239341549247e-07
+ },
+ "goals_per_group_game": 2.4959972222222224,
+ "group_draw_rate": 0.22143333333333334,
+ "mean_points_by_position": [
+  7.642516666666666,
+  5.070766666666667,
+  3.0241,
+  0.9340166666666667
+ ],
+ "shootout_model": {
+  "n_shootouts": 699,
+  "coef_elo_per100": 0.1357600996210086,
+  "coef_record": 0.1338706097439306,
+  "holdout_from": 2015,
+  "n_holdout": 229,
+  "holdout_logloss": 0.68507186020923,
+  "coin_logloss": 0.6931471805599453,
+  "first_shooter_win_rate": 0.5241635687732342,
+  "n_first_shooter": 269
+ },
+ "champion_decided_in_final": {
+  "90": 7286,
+  "ET": 1066,
+  "PEN": 1648
+ }
+}
